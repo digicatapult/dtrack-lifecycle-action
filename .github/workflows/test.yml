@@ -1,0 +1,26 @@
+name: Test
+
+on:
+  push:
+    branches-ignore: ['main']
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    name: Lint and test
+    uses: ./.github/workflows/lint.yml
+
+  scan-secrets:
+    name: Scan secrets
+    uses: digicatapult/shared-workflows/.github/workflows/scan-secrets.yml@main
+    permissions:
+      contents: read
+    with:
+      enable_trufflehog_action: true
+
+  check-version:
+    name: Check version
+    uses: digicatapult/shared-workflows/.github/workflows/check-version.yml@main
+    permissions: {}

@@ -45,7 +45,7 @@ The API key used must have both the `PORTFOLIO_MANAGEMENT` and
 
 ```yaml
 - name: Manage Dependency-Track project lifecycle
-  uses: <org>/dtrack-lifecycle-action@v1
+  uses: digicatapult/dtrack-lifecycle-action@v1
   with:
     dtrack-uri: https://dtrack.example.com
     api-key: ${{ secrets.DTRACK_API_KEY }}
@@ -65,6 +65,24 @@ The API key used must have both the `PORTFOLIO_MANAGEMENT` and
 | `operation`    | no       | `deactivate` | `reparent`, `deactivate`, or `both` (runs reparent then deactivate)                                |
 | `keep-n`       | no       | `1`          | Number of most recent versions to keep active (deactivate only)                                    |
 | `keep-active`  | no       | `''`         | Comma-delimited versions to always keep active, excluded from the `keep-n` count (deactivate only) |
+
+### Versioning
+
+Releases follow [semantic versioning](https://semver.org/) and are tagged
+`vX.Y.Z`. On each stable release the major tag (e.g. `v1`) is force-moved
+to the newest `v1.x.x`, so `@v1` picks up fixes and features without
+breaking changes. For stricter supply-chain control, pin to a full commit
+SHA instead and let Renovate or Dependabot propose updates:
+
+```yaml
+uses: digicatapult/dtrack-lifecycle-action@<commit-sha>  # vX.Y.Z
+```
+
+The version lives in `package.json`, which exists only as a version
+source for the release tooling; the action has no npm dependencies.
+Versions are bumped on pull requests by applying a version label (e.g.
+`v:patch`, `v:minor`, `v:major`), and a release is published when the PR
+merges to `main`.
 
 ## Usage as a standalone script
 
