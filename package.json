@@ -1,0 +1,11 @@
+{
+  "name": "dtrack-lifecycle-action",
+  "version": "1.0.0",
+  "description": "Version source for release tooling only. This action is plain Bash and has no npm dependencies.",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digicatapult/dtrack-lifecycle-action.git"
+  }
+}

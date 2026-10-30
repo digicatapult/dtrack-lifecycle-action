@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    branches: ['main']
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    name: Lint and test
+    uses: ./.github/workflows/lint.yml
+
+  check-version:
+    name: Check version
+    uses: digicatapult/shared-workflows/.github/workflows/check-version.yml@main
+    permissions: {}
+
+  publish:
+    name: Publish release
+    needs: [lint-and-test, check-version]
+    if: needs.check-version.outputs.is_new_version == 'true'
+    uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
+    permissions:
+      contents: write
+      pull-requests: read
+
+  # Consumers reference this action as `@v1`, so the major tag must follow
+  # the newest stable release in that series. Pre-releases are excluded so
+  # `@v1` never resolves to an unstable build.
+  move-major-tag:
+    name: Move major version tag
+    needs: [check-version, publish]
+    if: >-
+      needs.check-version.outputs.is_new_version == 'true' &&
+      needs.check-version.outputs.is_prerelease != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Force-move major tag to the new release
+        env:
+          VERSION: ${{ needs.check-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$VERSION" =~ ^v([0-9]+)\.[0-9]+\.[0-9]+$ ]]; then
+            printf '::error::"%s" is not a stable vX.Y.Z tag; not moving major tag.\n' \
+              "$VERSION" >&2
+            exit 1
+          fi
+          major_tag="v${BASH_REMATCH[1]}"
+          git fetch --tags --force
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag -f "$major_tag" "refs/tags/${VERSION}^{commit}"
+          git push -f origin "refs/tags/${major_tag}"
+          printf 'Moved %s to %s\n' "$major_tag" "$VERSION"
